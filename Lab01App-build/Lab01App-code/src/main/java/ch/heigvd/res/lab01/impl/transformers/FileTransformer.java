@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -29,7 +30,10 @@ public abstract class FileTransformer implements IFileVisitor {
 
   private static final Logger LOG = Logger.getLogger(FileTransformer.class.getName());
   private final List<FilterWriter> filters = new ArrayList<>();
-  
+
+
+  static final int BUFFER_SIZE = 256;
+
   /**
    * The subclasses implement this method to define what transformation(s) are
    * applied when writing characters to the output writer. The visit(File file)
@@ -52,6 +56,12 @@ public abstract class FileTransformer implements IFileVisitor {
       Reader reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
       Writer writer = new OutputStreamWriter(new FileOutputStream(file.getPath()+ ".out"), "UTF-8"); // the bug fix by teacher
       writer = decorateWithFilters(writer);
+
+      char[] charBuffer = new char[BUFFER_SIZE];
+      int charRead;
+      while ((charRead = reader.read(charBuffer,0,BUFFER_SIZE))!= -1){
+        writer.write(charBuffer,0,charRead);
+      }
 
       /*
        * There is a missing piece here: you have an input reader and an ouput writer (notice how the 
